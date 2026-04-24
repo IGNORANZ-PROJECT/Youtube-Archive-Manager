@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="{{ ui_language }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ text.settings_title }}</title>
+  <link rel="icon" href="{{ icon_url }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="page-body">
+  <header class="site-header">
+    <div class="brand-block brand-block-compact">
+      <img class="brand-icon" src="{{ icon_url }}" alt="YAM icon" />
+      <div class="brand-copy">
+        <h1>YAM</h1>
+        <p id="channelInfo" class="sub">{{ text.settings_sub }}</p>
+      </div>
+    </div>
+
+    <nav class="nav-tabs" aria-label="画面切替">
+      <a href="/" class="nav-link">{{ text.nav_index }}</a>
+      <a href="/settings" class="nav-link is-current">{{ text.nav_settings }}</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="syncSettingsBtn" class="btn primary" type="button">{{ text.button_sync }}</button>
+    </div>
+  </header>
+
+  <main class="page settings-page">
+    <section class="panel settings-panel">
+      <div class="list-head">
+        <h2>{{ text.section_sync_settings }}</h2>
+      </div>
+
+      <div class="settings-grid">
+        <label class="field">
+          <span>{{ text.label_api_key }}</span>
+          <input type="password" id="apiKeyInput" placeholder="AIza..." />
+        </label>
+
+        <label class="field">
+          <span>{{ text.label_channel_reference }}</span>
+          <textarea id="channelInput" rows="3" placeholder="{{ text.label_channel_reference_placeholder }}"></textarea>
+        </label>
+
+        <label class="field">
+          <span>{{ text.label_auto_sync_minutes }}</span>
+          <input type="number" id="autoSyncMinutesInput" min="1" value="30" />
+        </label>
+
+        <label class="field">
+          <span>{{ text.label_backup_limit }}</span>
+          <input type="number" id="backupLimitInput" min="1" value="5" />
+        </label>
+
+        <label class="field">
+          <span>{{ text.label_language }}</span>
+          <select id="languageInput">
+            <option value="en">{{ text.language_english }}</option>
+            <option value="ja">{{ text.language_japanese }}</option>
+          </select>
+        </label>
+
+        <label class="field wide">
+          <span>{{ text.label_sync_excluded_tags }}</span>
+          <input type="text" id="syncExcludedTagsInput" placeholder="{{ text.label_sync_excluded_tags_placeholder }}" />
+        </label>
+
+        <div class="field wide">
+          <span>{{ text.label_icon }}</span>
+          <div class="icon-setting-row">
+            <img id="settingsIconPreview" class="settings-icon-preview" src="{{ icon_url }}" alt="Current icon" />
+            <input type="file" id="iconFileInput" accept="image/*" />
+            <button id="saveIconBtn" class="btn ghost" type="button">{{ text.button_save_icon }}</button>
+          </div>
+        </div>
+
+        <label class="field wide">
+          <span>{{ text.label_default_sort }}</span>
+          <select id="defaultSortInput">
+            <option value="published_desc">{{ text.sort_timeline }}</option>
+            <option value="created_desc">{{ text.sort_added }}</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="action-row">
+        <button id="saveSettingsBtn" class="btn" type="button">{{ text.button_save_settings }}</button>
+        <button id="applySyncExcludedTagsBtn" class="btn ghost" type="button">{{ text.button_apply_existing }}</button>
+      </div>
+    </section>
+
+    <section class="panel stats-panel">
+      <div class="list-head">
+        <h2>{{ text.section_stats }}</h2>
+        <div class="stats-head-actions">
+          <div class="segmented">
+            <button type="button" class="segmented-btn is-current" data-granularity="day">{{ text.button_day }}</button>
+            <button type="button" class="segmented-btn" data-granularity="month">{{ text.button_month }}</button>
+          </div>
+          <div class="chart-nav">
+            <button id="statsPrevBtn" class="btn ghost small" type="button">{{ text.button_prev }}</button>
+            <button id="statsTodayBtn" class="btn ghost small" type="button">{{ text.button_today }}</button>
+            <button id="statsNextBtn" class="btn ghost small" type="button">{{ text.button_next }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card wide">
+          <div class="stat-card-head">
+            <div class="label">{{ text.label_watch_progress }}</div>
+            <div id="progressChartTotal" class="chart-average-stack">
+              <strong id="progressWindowAverage" class="stat-emphasis chart-average-primary">{{ text.label_window_average }}</strong>
+              <span id="progressOverallAverage" class="helper-text">{{ text.label_overall_average }}</span>
+            </div>
+          </div>
+          <div id="progressChart" class="chart-bars"></div>
+        </article>
+
+        <article class="stat-card">
+          <div class="label">{{ text.label_tag_ratio }}</div>
+          <div class="input-dropdown-row">
+            <label class="field compact-field input-dropdown-field">
+              <span>{{ text.label_condition }}</span>
+              <div class="search-suggest-shell">
+                <div id="ratioSuggestList" class="search-suggest-list" hidden></div>
+                <input type="text" id="tagRatioQueryInput" placeholder="{{ text.label_ratio_placeholder }}" autocomplete="off" />
+              </div>
+            </label>
+
+            <label class="field compact-field dropdown-side-field">
+              <span>{{ text.tags }}</span>
+              <div class="tag-dropdown" id="ratioTagDropdown">
+                <button id="ratioTagDropdownToggle" class="btn ghost tag-dropdown-toggle" type="button" aria-expanded="false" aria-controls="ratioTagDropdownPanel">
+                  <span id="ratioTagDropdownLabel">{{ text.none_selected }}</span>
+                  <span class="tag-dropdown-caret">▾</span>
+                </button>
+
+                <div id="ratioTagDropdownPanel" class="tag-dropdown-panel" hidden>
+                  <div class="tag-dropdown-head">
+                    <button id="clearRatioTagSelectionBtn" class="btn ghost small" type="button">{{ text.clear }}</button>
+                  </div>
+
+                  <div id="ratioTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>
+                  <div id="ratioTagDropdownList" class="tag-check-list"></div>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="pie-layout">
+            <div id="tagRatioPie" class="pie-ring"></div>
+            <div>
+              <div id="tagRatioValue" class="stat-emphasis">0.0%</div>
+              <div id="tagRatioText" class="helper-text"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div id="averageDurationLabel" class="label">{{ text.label_average_duration }}</div>
+
+          <div class="input-dropdown-row">
+            <label class="field compact-field input-dropdown-field">
+              <span>{{ text.label_condition }}</span>
+              <div class="search-suggest-shell">
+                <div id="averageSuggestList" class="search-suggest-list" hidden></div>
+                <input type="text" id="averageQueryInput" placeholder="{{ text.label_average_placeholder }}" autocomplete="off" />
+              </div>
+            </label>
+
+            <label class="field compact-field dropdown-side-field">
+              <span>{{ text.tags }}</span>
+              <div class="tag-dropdown" id="averageTagDropdown">
+                <button id="averageTagDropdownToggle" class="btn ghost tag-dropdown-toggle" type="button" aria-expanded="false" aria-controls="averageTagDropdownPanel">
+                  <span id="averageTagDropdownLabel">{{ text.none_selected }}</span>
+                  <span class="tag-dropdown-caret">▾</span>
+                </button>
+
+                <div id="averageTagDropdownPanel" class="tag-dropdown-panel" hidden>
+                  <div class="tag-dropdown-head">
+                    <button id="clearAverageTagSelectionBtn" class="btn ghost small" type="button">{{ text.clear }}</button>
+                  </div>
+
+                  <div id="averageTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>
+                  <div id="averageTagDropdownList" class="tag-check-list"></div>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div id="averageDurationValue" class="stat-emphasis">00:00:00</div>
+          <div id="averageDurationText" class="helper-text"></div>
+        </article>
+      </div>
+
+      <div class="action-row">
+        <button id="statsApplyBtn" class="btn" type="button">{{ text.button_stats_apply }}</button>
+        <button id="statsSaveBtn" class="btn ghost" type="button">{{ text.button_stats_save }}</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <details class="credits-details">
+      <summary>{{ text.credits_summary }}</summary>
+      <div class="credits-panel">
+        <a href="https://x.com/Josyuuchi_Joyu" target="_blank" rel="noopener noreferrer">{{ text.credits_planning }}</a>
+        <a href="https://x.com/ArataEgami" target="_blank" rel="noopener noreferrer">{{ text.credits_system }}</a>
+        <a href="https://x.com/IGNORANZ_P" target="_blank" rel="noopener noreferrer">{{ text.credits_x }}</a>
+        <a href="https://ignoranz-project.web.app/" target="_blank" rel="noopener noreferrer">{{ text.credits_site }}</a>
+      </div>
+    </details>
+  </footer>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="chartTooltip" class="chart-tooltip" hidden></div>
+
+  <script>
+    window.YAM_LANGUAGE = {{ ui_language|tojson }};
+    window.YAM_LOCALE = {{ ui_locale|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='settings.js') }}"></script>
+</body>
+</html>
