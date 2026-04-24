@@ -27,7 +27,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", sans-serif;
+  font-family: "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
 }
 
 a {
@@ -71,8 +71,7 @@ textarea {
   gap: 12px;
   align-items: center;
   padding: 10px 16px;
-  background: rgba(243, 239, 231, 0.94);
-  backdrop-filter: blur(10px);
+  background: rgba(243, 239, 231, 0.98);
   border-bottom: 1px solid rgba(221, 214, 200, 0.95);
 }
 
@@ -880,7 +879,6 @@ textarea {
   border: 1px solid rgba(27, 33, 43, 0.14);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(4px);
   flex: 0 0 auto;
 }
 
@@ -1196,7 +1194,6 @@ textarea {
 
 .modal-shell::backdrop {
   background: rgba(27, 33, 43, 0.42);
-  backdrop-filter: blur(3px);
 }
 
 .modal-card {

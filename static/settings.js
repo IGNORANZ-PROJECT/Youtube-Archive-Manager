@@ -123,9 +123,9 @@ const MESSAGES = {
   },
 }[LANGUAGE];
 
-const SETTINGS_CACHE_KEY = "yam:settings-state:v9";
-const STATS_CACHE_KEY = "yam:stats-state:v9";
-const INDEX_CACHE_KEY = "yam:index-state:v9";
+const SETTINGS_CACHE_KEY = "yam:settings-state:v10";
+const STATS_CACHE_KEY = "yam:stats-state:v10";
+const INDEX_CACHE_KEY = "yam:index-state:v10";
 const MAX_QUERY_SUGGESTIONS = 8;
 
 let currentGranularity = "day";
@@ -238,9 +238,22 @@ function setButtonBusy(button, busy) {
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, options);
-  const data = await response.json();
+  const raw = await response.text();
+  let data = {};
+
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_error) {
+      if (!response.ok) {
+        throw new Error(raw.trim() || response.statusText || t("request_failed"));
+      }
+      throw new Error(t("request_failed"));
+    }
+  }
+
   if (!response.ok || data.ok === false) {
-    throw new Error(data.error || t("request_failed"));
+    throw new Error(data.error || response.statusText || t("request_failed"));
   }
   return data;
 }

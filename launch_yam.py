@@ -5,6 +5,7 @@ import os
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.request
@@ -52,16 +53,23 @@ def load_bootstrap_state() -> Dict[str, Any]:
         return {}
     try:
         return json.loads(BOOTSTRAP_STATE_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
         return {}
 
 
 def save_bootstrap_state(state: Dict[str, Any]) -> None:
     VENV_DIR.mkdir(parents=True, exist_ok=True)
-    BOOTSTRAP_STATE_PATH.write_text(
-        json.dumps(state, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    fd, temp_path = tempfile.mkstemp(dir=VENV_DIR, suffix=".tmp")
+    os.close(fd)
+    try:
+        Path(temp_path).write_text(
+            json.dumps(state, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        os.replace(temp_path, BOOTSTRAP_STATE_PATH)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 def ensure_virtualenv() -> None:

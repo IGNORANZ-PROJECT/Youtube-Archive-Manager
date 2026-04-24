@@ -180,7 +180,7 @@ const MESSAGES = {
   },
 }[LANGUAGE];
 
-const LIST_CACHE_KEY = "yam:index-state:v9";
+const LIST_CACHE_KEY = "yam:index-state:v10";
 const INITIAL_RENDER_COUNT = 18;
 const LOAD_MORE_RENDER_COUNT = 24;
 const FRAME_RENDER_COUNT = 6;
@@ -340,9 +340,22 @@ function setLinkState(link, href) {
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, options);
-  const data = await response.json();
+  const raw = await response.text();
+  let data = {};
+
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (_error) {
+      if (!response.ok) {
+        throw new Error(raw.trim() || response.statusText || t("request_failed"));
+      }
+      throw new Error(t("request_failed"));
+    }
+  }
+
   if (!response.ok || data.ok === false) {
-    throw new Error(data.error || t("request_failed"));
+    throw new Error(data.error || response.statusText || t("request_failed"));
   }
   return data;
 }

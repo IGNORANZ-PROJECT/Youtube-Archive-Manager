@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 from flask import Flask, has_request_context, jsonify, render_template, request, send_file
 
 __author__ = "Arata"
-__version__ = "1.3"
+__version__ = "1.3.1"
 
 
 FROZEN_APP = bool(getattr(sys, "frozen", False))
@@ -86,7 +86,7 @@ DEFAULT_CONFIG = {
     "last_sync_message": "YouTube同期は未設定です。",
 }
 
-SORT_OPTIONS = {"published_desc", "created_desc"}
+SORT_OPTIONS = {"published_desc", "published_asc"}
 SUPPORTED_UI_LANGUAGES = {"ja", "en"}
 DEFAULT_UI_LANGUAGE = "en"
 UI_LOCALE_MAP = {
@@ -114,8 +114,8 @@ TEMPLATE_TEXT = {
         "status_partial": "途中",
         "status_unseen": "未視聴",
         "sort": "並び順",
-        "sort_timeline": "時系列",
-        "sort_added": "追加順",
+        "sort_newest": "新しい順",
+        "sort_oldest": "古い順",
         "button_search": "検索",
         "button_reset": "リセット",
         "progress": "進捗",
@@ -219,8 +219,8 @@ TEMPLATE_TEXT = {
         "status_partial": "In progress",
         "status_unseen": "Unwatched",
         "sort": "Sort",
-        "sort_timeline": "Chronological",
-        "sort_added": "Added order",
+        "sort_newest": "Newest first",
+        "sort_oldest": "Oldest first",
         "button_search": "Search",
         "button_reset": "Reset",
         "progress": "Progress",
@@ -320,7 +320,13 @@ PROGRESS_HISTORY_CACHE: Dict[str, Any] = {
     "key": None,
     "rows": [],
 }
+CONFIG_CACHE: Dict[str, Any] = {
+    "loaded": False,
+    "data": {},
+}
 SYNC_LOCK = threading.Lock()
+STORAGE_LOCK = threading.Lock()
+STORAGE_READY = False
 SYNC_STATE: Dict[str, Any] = {
     "running": False,
     "started_at": "",
@@ -595,12 +601,17 @@ def ensure_csv(file_path: str, headers: List[str]) -> None:
         return
 
     with open(file_path, "r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.reader(f)
+        current_headers = next(reader, [])
+
+    if current_headers == headers:
+        return
+
+    with open(file_path, "r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
-        current_headers = reader.fieldnames or []
         rows = list(reader)
 
-    if current_headers != headers:
-        atomic_write_csv(file_path, headers, rows)
+    atomic_write_csv(file_path, headers, rows)
 
 
 def atomic_write_csv(file_path: str, headers: List[str], rows: List[Dict[str, Any]]) -> None:
@@ -640,7 +651,7 @@ def read_json(file_path: str, default: Any) -> Any:
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
         return default
 
 
@@ -681,7 +692,14 @@ def file_signature(*paths: str) -> Tuple[Tuple[str, float, int], ...]:
 
 def load_config() -> Dict[str, Any]:
     config = DEFAULT_CONFIG.copy()
-    stored = read_json(CONFIG_JSON, {})
+    stored = read_json(CONFIG_JSON, None)
+    if isinstance(stored, dict):
+        CONFIG_CACHE["loaded"] = True
+        CONFIG_CACHE["data"] = dict(stored)
+    elif CONFIG_CACHE["loaded"]:
+        stored = dict(CONFIG_CACHE["data"])
+    else:
+        stored = {}
     if isinstance(stored, dict):
         for key, value in stored.items():
             if key in config:
@@ -727,11 +745,27 @@ def save_config(config: Dict[str, Any]) -> Dict[str, Any]:
     merged["last_sync_status"] = str(merged.get("last_sync_status", "idle")).strip() or "idle"
     merged["last_sync_message"] = str(merged.get("last_sync_message", "")).strip()
     atomic_write_json(CONFIG_JSON, merged)
+    CONFIG_CACHE["loaded"] = True
+    CONFIG_CACHE["data"] = dict(merged)
     return merged
 
 
 def ensure_config() -> None:
-    save_config(load_config())
+    if os.path.exists(CONFIG_JSON):
+        return
+    save_config(DEFAULT_CONFIG.copy())
+
+
+def ensure_storage_ready() -> None:
+    global STORAGE_READY
+    if STORAGE_READY:
+        return
+
+    with STORAGE_LOCK:
+        if STORAGE_READY:
+            return
+        ensure_directories()
+        STORAGE_READY = True
 
 
 def build_sync_info(config: Dict[str, Any]) -> Dict[str, Any]:
@@ -1153,17 +1187,7 @@ def sort_videos(videos: List[Dict[str, Any]], sort_name: str) -> List[Dict[str, 
         created_at = parse_datetime(video.get("created_at", "")) or datetime.min
         return published_at, created_at
 
-    if sort_name == "created_desc":
-        return sorted(
-            videos,
-            key=lambda video: (
-                parse_datetime(video.get("created_at", "")) or datetime.min,
-                parse_datetime(video.get("published_at", "")) or datetime.min,
-            ),
-            reverse=True,
-        )
-
-    return sorted(videos, key=sort_key, reverse=True)
+    return sorted(videos, key=sort_key, reverse=(sort_name != "published_asc"))
 
 
 def tag_entries(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -2483,7 +2507,7 @@ def calculate_statistics(granularity: str, chart_offset: int, ratio_query: str, 
 
 @app.before_request
 def prepare_storage() -> None:
-    ensure_directories()
+    ensure_storage_ready()
 
 
 @app.route("/")
@@ -2894,7 +2918,7 @@ def api_backup():
 
 
 def run_server(host: Optional[str] = None, port: Optional[int] = None, debug: Optional[bool] = None) -> None:
-    ensure_directories()
+    ensure_storage_ready()
     server_host = str(host).strip() if host else runtime_host()
     preferred_port = max(1, int(port)) if port is not None else runtime_port()
     server_port = choose_runtime_port(server_host, preferred_port)

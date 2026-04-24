@@ -79,8 +79,8 @@
         <label class="field wide">
           <span>{{ text.label_default_sort }}</span>
           <select id="defaultSortInput">
-            <option value="published_desc">{{ text.sort_timeline }}</option>
-            <option value="created_desc">{{ text.sort_added }}</option>
+            <option value="published_desc">{{ text.sort_newest }}</option>
+            <option value="published_asc">{{ text.sort_oldest }}</option>
           </select>
         </label>
       </div>
@@ -140,7 +140,7 @@
 
                 <div id="ratioTagDropdownPanel" class="tag-dropdown-panel" hidden>
                   <div class="tag-dropdown-head">
-                    <button id="clearRatioTagSelectionBtn" class="btn ghost small" type="button">{{ text.clear }}</button>
+                    <button id="clearRatioTagSelectionBtn" class="btn ghost small" type="button">{{ text["clear"] }}</button>
                   </div>
 
                   <div id="ratioTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>
@@ -181,7 +181,7 @@
 
                 <div id="averageTagDropdownPanel" class="tag-dropdown-panel" hidden>
                   <div class="tag-dropdown-head">
-                    <button id="clearAverageTagSelectionBtn" class="btn ghost small" type="button">{{ text.clear }}</button>
+                    <button id="clearAverageTagSelectionBtn" class="btn ghost small" type="button">{{ text["clear"] }}</button>
                   </div>
 
                   <div id="averageTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>

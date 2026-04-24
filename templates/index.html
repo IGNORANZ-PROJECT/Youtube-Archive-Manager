@@ -49,7 +49,7 @@
 
             <div id="indexTagDropdownPanel" class="tag-dropdown-panel" hidden>
               <div class="tag-dropdown-head">
-                <button id="clearIndexTagSelectionBtn" class="btn ghost small" type="button">{{ text.clear }}</button>
+                <button id="clearIndexTagSelectionBtn" class="btn ghost small" type="button">{{ text["clear"] }}</button>
               </div>
 
               <div id="indexTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>
@@ -71,8 +71,8 @@
         <label class="field compact-field">
           <span>{{ text.sort }}</span>
           <select id="sortFilter">
-            <option value="published_desc">{{ text.sort_timeline }}</option>
-            <option value="created_desc">{{ text.sort_added }}</option>
+            <option value="published_desc">{{ text.sort_newest }}</option>
+            <option value="published_asc">{{ text.sort_oldest }}</option>
           </select>
         </label>
 
