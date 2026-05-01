@@ -76,6 +76,30 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 - macOS: zip をダブルクリックして展開し、できたフォルダを開いて `YAM.app` を起動する
 - Windows: zip を右クリックして `すべて展開` を選び、展開されたフォルダを開いて `YAM.exe` を起動する
 
+### 2. ソース版をそのまま動かす場合
+
+以下のランチャーを起動させてください。自動で環境構築などを行い、起動します。
+
+- macOS: `Launch YAM.command`
+- Windows: `Launch YAM.bat`
+
+この方法は Python 3.10 以上が必要です。
+
+### 3. 手動起動の場合
+
+ランチャーは `launch_yam.py` を使って自動で `.venv` を作成し、必要な依存関係を入れてから起動します。
+
+必要なもの:
+
+- Python 3.10 以上
+- 初回セットアップ時のインターネット接続
+
+手動起動:
+
+```bash
+python launch_yam.py
+```
+
 ## 配布ファイルの構成
 
 このフォルダは、そのまま別 Git のルートとして配布管理できるようにしています。
@@ -84,6 +108,8 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 
 - `packages/`
   利用者へ渡す配布用フォルダと zip
+- `dist/`
+  ビルド直後の実行ファイル本体
 - `README.md`
   利用者向け説明
 - `LICENSE`
@@ -107,14 +133,7 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 - `README.md`
 - `LICENSE`
 
-配布するときは、通常は `packages/` の zip をそのまま渡してください。
-
-補足:
-
-- `dist/` はビルド直後の確認用として一時的に作られることがあります
-- 配布用 Git では `dist/` を含めなくても問題ありません
-- `dist/` の中身だけを単体で渡す運用は推奨しません
-- 配布物として見るべきものは `packages/` の zip です
+配布するときは、通常は `packages/` の zip をそのまま渡してください。`dist/` の中身だけを単体で渡す運用は推奨しません。
 
 ## ポートについて
 
@@ -179,11 +198,11 @@ https://www.youtube.com/@HakuiKoyori, https://www.youtube.com/@sakamatachloe, @l
 
 参考:
 
-- YouTube Data API Overview  
+- YouTube Data API Overview
   https://developers.google.com/youtube/v3/getting-started
-- Manage API keys  
+- Manage API keys
   https://cloud.google.com/docs/authentication/api-keys
-- Enable and disable APIs  
+- Enable and disable APIs
   https://support.google.com/googleapi/answer/6158841
 
 詳しくは `YouTube API キーの取得方法` や `YouTube Data API v3` で調べると、画像付きの解説も見つかります。
@@ -216,20 +235,20 @@ https://www.youtube.com/@HakuiKoyori, https://www.youtube.com/@sakamatachloe, @l
 
 ### 基本
 
-- `歌枠`  
+- `歌枠`
   `歌枠` を含む動画を検索
 
-- `歌枠 コラボ`  
+- `歌枠 コラボ`
   `歌枠` と `コラボ` の両方を含む動画を検索
 
 ### 除外検索
 
 `-` を付けると除外できます。
 
-- `歌枠 -切り抜き`  
+- `歌枠 -切り抜き`
   `歌枠` を含み、`切り抜き` を含む動画を除外
 
-- `3Dライブ -shorts -clip`  
+- `3Dライブ -shorts -clip`
   `3Dライブ` を含み、`shorts` と `clip` を含むものを除外
 
 ### タグ候補
@@ -293,7 +312,7 @@ https://www.youtube.com/@HakuiKoyori, https://www.youtube.com/@sakamatachloe, @l
 
 ## ライセンス
 
-MIT License  
+MIT License
 詳細は [LICENSE](LICENSE) を参照してください。
 
 ## Credits
