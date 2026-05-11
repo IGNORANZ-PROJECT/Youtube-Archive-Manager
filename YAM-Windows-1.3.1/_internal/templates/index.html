@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="{{ ui_language }}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ text.index_title }}</title>
+  <link rel="icon" href="{{ icon_url }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="page-body">
+  <header class="site-header">
+    <div class="brand-block brand-block-compact">
+      <img class="brand-icon" src="{{ icon_url }}" alt="YAM icon" />
+      <div class="brand-copy">
+        <h1>YAM</h1>
+        <p id="channelInfo" class="sub">{{ text.index_sub }}</p>
+      </div>
+    </div>
+
+    <nav class="nav-tabs" aria-label="画面切替">
+      <a href="/" class="nav-link is-current">{{ text.nav_index }}</a>
+      <a href="/settings" class="nav-link">{{ text.nav_settings }}</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="addBtn" class="btn ghost" type="button">{{ text.button_add }}</button>
+      <button id="syncBtn" class="btn primary" type="button">{{ text.button_sync }}</button>
+    </div>
+  </header>
+
+  <main class="page index-page">
+    <section id="searchPanel" class="panel toolbar-panel sticky-panel">
+      <div class="toolbar-grid toolbar-grid-yam">
+        <label class="field search-field search-suggest-field">
+          <span>{{ text.search }}</span>
+          <div class="search-suggest-shell">
+            <div id="searchSuggestList" class="search-suggest-list" hidden></div>
+            <input type="text" id="searchInput" placeholder="{{ text.search_placeholder }}" autocomplete="off" />
+          </div>
+        </label>
+
+        <label class="field compact-field">
+          <span>{{ text.tags }}</span>
+          <div class="tag-dropdown" id="indexTagDropdown">
+            <button id="indexTagDropdownToggle" class="btn ghost tag-dropdown-toggle" type="button" aria-expanded="false" aria-controls="indexTagDropdownPanel">
+              <span id="indexTagDropdownLabel">{{ text.none_selected }}</span>
+              <span class="tag-dropdown-caret">▾</span>
+            </button>
+
+            <div id="indexTagDropdownPanel" class="tag-dropdown-panel" hidden>
+              <div class="tag-dropdown-head">
+                <button id="clearIndexTagSelectionBtn" class="btn ghost small" type="button">{{ text["clear"] }}</button>
+              </div>
+
+              <div id="indexTagDropdownMeta" class="tag-dropdown-meta helper-text">0 / 0</div>
+              <div id="indexTagDropdownList" class="tag-check-list"></div>
+            </div>
+          </div>
+        </label>
+
+        <label class="field compact-field">
+          <span>{{ text.watch_status }}</span>
+          <select id="statusFilter">
+            <option value="all">{{ text.status_all }}</option>
+            <option value="watched">{{ text.status_watched }}</option>
+            <option value="partial">{{ text.status_partial }}</option>
+            <option value="unseen">{{ text.status_unseen }}</option>
+          </select>
+        </label>
+
+        <label class="field compact-field">
+          <span>{{ text.sort }}</span>
+          <select id="sortFilter">
+            <option value="published_desc">{{ text.sort_newest }}</option>
+            <option value="published_asc">{{ text.sort_oldest }}</option>
+          </select>
+        </label>
+
+        <button id="searchBtn" class="btn" type="button">{{ text.button_search }}</button>
+        <button id="resetBtn" class="btn ghost" type="button">{{ text.button_reset }}</button>
+      </div>
+    </section>
+
+    <section class="panel overview-panel">
+      <div class="overview-metrics">
+        <article class="metric">
+          <div class="label">{{ text.progress }}</div>
+          <strong><span id="watchedPercent">0.0</span>%</strong>
+        </article>
+        <article class="metric">
+          <div class="label">{{ text.watched_total }}</div>
+          <strong><span id="watchedCount">0</span> / <span id="totalCount">0</span></strong>
+        </article>
+        <article class="metric">
+          <div class="label">{{ text.partial }}</div>
+          <strong id="partialCount">0</strong>
+        </article>
+        <article class="metric">
+          <div class="label">{{ text.unseen }}</div>
+          <strong id="unseenCount">0</strong>
+        </article>
+      </div>
+
+      <div id="overviewProgress" class="overview-progress">
+        <div class="overview-row">
+          <span>{{ text.watched_total_time }} <strong id="watchedTotalText">00:00:00</strong></span>
+          <span>{{ text.remaining }} <strong id="remainingTotalText">00:00:00</strong></span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div class="balance-bar">
+          <div id="balanceWatched" class="balance-watched"></div>
+          <div id="balanceRemaining" class="balance-remaining"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel list-panel">
+      <div class="list-head">
+        <h2>{{ text.list_title }}</h2>
+        <div class="list-head-actions">
+          <div id="resultCount" class="result-count">{{ text.zero_items }}</div>
+          <button id="selectVisibleBtn" class="btn ghost small" type="button">{{ text.select_visible }}</button>
+          <button id="clearSelectionBtn" class="btn ghost small" type="button">{{ text.clear_selection }}</button>
+        </div>
+      </div>
+      <div id="bulkActionBar" class="bulk-action-bar" hidden>
+        <div id="bulkSelectionCount" class="bulk-selection-count">{{ text.zero_selected }}</div>
+        <button id="bulkMarkWatchedBtn" class="btn small" type="button">{{ text.button_mark_watched }}</button>
+        <button id="bulkMarkUnwatchedBtn" class="btn small ghost" type="button">{{ text.button_mark_unwatched }}</button>
+        <input type="text" id="bulkAddTagsInput" placeholder="{{ text.bulk_add_tags_placeholder }}" />
+        <button id="bulkAddTagsBtn" class="btn small" type="button">{{ text.bulk_add_tags }}</button>
+        <input type="text" id="bulkRemoveTagsInput" placeholder="{{ text.bulk_remove_tags_placeholder }}" />
+        <button id="bulkRemoveTagsBtn" class="btn small ghost" type="button">{{ text.bulk_remove_tags }}</button>
+        <button id="bulkDeleteBtn" class="btn small ghost danger" type="button">{{ text.button_delete }}</button>
+      </div>
+      <div id="videoList" class="video-list"></div>
+    </section>
+  </main>
+
+  <dialog id="manualModal" class="modal-shell">
+    <form id="manualForm" class="modal-card" method="dialog">
+      <div class="modal-head">
+        <h2>{{ text.manual_add }}</h2>
+        <button id="manualCloseBtn" class="btn ghost small" type="button">{{ text.button_close }}</button>
+      </div>
+
+      <div class="modal-grid">
+        <label class="field">
+          <span>{{ text.label_url }}</span>
+          <input type="text" id="manualUrlInput" name="url" placeholder="https://www.youtube.com/watch?v=..." />
+        </label>
+
+        <label class="field">
+          <span>{{ text.label_current_progress }}</span>
+          <input type="text" id="manualWatchedInput" name="watched_time_text" placeholder="00:00:00" />
+        </label>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="manualMarkWatchedInput" name="mark_watched" value="1" />
+          <span>{{ text.label_add_as_watched }}</span>
+        </label>
+      </div>
+
+      <details class="details-box modal-details">
+        <summary>{{ text.details_input }}</summary>
+        <div class="details-content modal-grid">
+          <label class="field">
+            <span>{{ text.label_title }}</span>
+            <input type="text" id="manualTitleInput" name="title" placeholder="{{ text.label_title_placeholder }}" />
+          </label>
+
+          <label class="field">
+            <span>{{ text.label_duration }}</span>
+            <input type="text" id="manualDurationInput" name="duration_text" placeholder="00:00:00" />
+          </label>
+
+          <label class="field">
+            <span>{{ text.tags }}</span>
+            <input type="text" id="manualTagsInput" name="manual_tags" placeholder="{{ text.label_tags_placeholder }}" />
+          </label>
+
+          <label class="field">
+            <span>{{ text.label_thumbnail }}</span>
+            <input type="file" id="manualThumbnailInput" name="thumbnail" accept="image/*" />
+          </label>
+
+          <label class="field wide">
+            <span>{{ text.label_note }}</span>
+            <textarea id="manualNoteInput" name="note" rows="4" placeholder="{{ text.label_note_placeholder }}"></textarea>
+          </label>
+        </div>
+      </details>
+
+      <div class="modal-actions">
+        <button id="manualSubmitBtn" class="btn primary" type="submit">{{ text.button_add_submit }}</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="site-footer">
+    <details class="credits-details">
+      <summary>{{ text.credits_summary }}</summary>
+      <div class="credits-panel">
+        <a href="https://x.com/Josyuuchi_Joyu" target="_blank" rel="noopener noreferrer">{{ text.credits_planning }}</a>
+        <a href="https://x.com/ArataEgami" target="_blank" rel="noopener noreferrer">{{ text.credits_system }}</a>
+        <a href="https://x.com/IGNORANZ_P" target="_blank" rel="noopener noreferrer">{{ text.credits_x }}</a>
+        <a href="https://ignoranz-project.web.app/" target="_blank" rel="noopener noreferrer">{{ text.credits_site }}</a>
+      </div>
+    </details>
+  </footer>
+
+  <button id="jumpSearchBtn" class="btn ghost jump-search-btn" type="button">^</button>
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <div id="overviewTooltip" class="chart-tooltip overview-tooltip" hidden></div>
+
+  <template id="videoCardTemplate">
+    <article class="video-card">
+      <div class="thumb-shell">
+        <img class="thumb" src="" alt="thumbnail" loading="lazy" />
+      </div>
+
+      <div class="video-main">
+        <div class="video-head">
+          <div class="head-top">
+            <div class="head-status-group">
+              <label class="card-select-control">
+                <input type="checkbox" class="video-select-checkbox" />
+              </label>
+              <span class="status-badge"></span>
+            </div>
+            <div class="meta"></div>
+          </div>
+          <h3 class="title"></h3>
+        </div>
+
+        <div class="mini-progress-block">
+          <div class="mini-progress-bar">
+            <div class="mini-progress-fill"></div>
+          </div>
+          <div class="progress-meta">
+            <span class="mini-progress-text"></span>
+            <span class="progress-balance"></span>
+          </div>
+        </div>
+
+        <div class="actions-grid">
+          <a class="btn small open-link" target="_blank" rel="noopener noreferrer">{{ text.button_open }}</a>
+          <a class="btn small resume-link" target="_blank" rel="noopener noreferrer">{{ text.button_resume }}</a>
+          <a class="btn small thumb-download-link" rel="noopener noreferrer">{{ text.button_thumb }}</a>
+        </div>
+
+        <details class="details-box">
+          <summary class="edit-summary">{{ text.button_edit }}</summary>
+          <div class="details-content lazy-editor-host"></div>
+        </details>
+      </div>
+    </article>
+  </template>
+
+  <template id="videoEditorTemplate">
+    <div class="watch-editor">
+      <label class="field">
+        <span>{{ text.label_watch_time }}</span>
+        <input type="text" class="watched-time-input" placeholder="00:00:00" inputmode="numeric" />
+      </label>
+      <button class="btn small save-progress-btn" type="button">{{ text.button_save }}</button>
+      <button class="btn small mark-watched-btn" type="button">{{ text.button_mark_watched }}</button>
+      <button class="btn small ghost clear-progress-btn" type="button">{{ text.button_clear_progress }}</button>
+    </div>
+
+    <details class="details-box tag-editor-box">
+      <summary class="tag-editor-summary">{{ text.tag_summary }}</summary>
+      <div class="details-content">
+        <div class="editable-tag-list"></div>
+        <div class="tag-edit-row">
+          <input type="text" class="tags-input" placeholder="{{ text.label_tags_placeholder }}" />
+          <button class="btn small save-tags-btn" type="button">{{ text.button_save_tags }}</button>
+        </div>
+      </div>
+    </details>
+
+    <label class="field note-field">
+      <span>{{ text.label_note }}</span>
+      <textarea class="note-textarea" rows="3" placeholder="{{ text.label_note_editor_placeholder }}"></textarea>
+    </label>
+
+    <div class="details-actions">
+      <button class="btn small save-note-btn" type="button">{{ text.button_save_note }}</button>
+    </div>
+  </template>
+
+  <script>
+    window.YAM_LANGUAGE = {{ ui_language|tojson }};
+    window.YAM_LOCALE = {{ ui_locale|tojson }};
+  </script>
+  <script src="{{ url_for('static', filename='app-lifecycle.js') }}"></script>
+  <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>
