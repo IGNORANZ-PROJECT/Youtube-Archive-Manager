@@ -1,31 +1,22 @@
 (() => {
   const endpoint = "/api/app-lifecycle";
-  const tabStorageKey = "yam:app-tab-id";
-  const heartbeatIntervalMs = 10000;
+  const streamEndpoint = "/api/app-lifecycle/stream";
+  const fallbackHeartbeatIntervalMs = 8000;
 
-  function createTabId() {
+  function createClientId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") {
       return window.crypto.randomUUID();
     }
-    return `yam-tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `yam-client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
-  let tabId = "";
-  try {
-    tabId = window.sessionStorage.getItem(tabStorageKey) || "";
-    if (!tabId) {
-      tabId = createTabId();
-      window.sessionStorage.setItem(tabStorageKey, tabId);
-    }
-  } catch (_error) {
-    tabId = createTabId();
-  }
-
-  let heartbeatTimer = 0;
+  const clientId = createClientId();
   let closed = false;
+  let fallbackHeartbeatTimer = 0;
+  let lifecycleStream = null;
 
   function payloadFor(action) {
-    return JSON.stringify({ action, tab_id: tabId });
+    return JSON.stringify({ action, tab_id: clientId });
   }
 
   function sendLifecycle(action, useBeacon = false) {
@@ -50,50 +41,91 @@
     }).catch(() => {});
   }
 
-  function stopHeartbeat() {
-    if (heartbeatTimer) {
-      window.clearInterval(heartbeatTimer);
-      heartbeatTimer = 0;
+  function stopFallbackHeartbeat() {
+    if (fallbackHeartbeatTimer) {
+      window.clearInterval(fallbackHeartbeatTimer);
+      fallbackHeartbeatTimer = 0;
     }
   }
 
-  function startHeartbeat() {
-    stopHeartbeat();
-    heartbeatTimer = window.setInterval(() => {
-      sendLifecycle("heartbeat");
-    }, heartbeatIntervalMs);
-  }
-
-  function registerTab() {
-    closed = false;
+  function startFallbackHeartbeat() {
+    stopFallbackHeartbeat();
     sendLifecycle("register");
-    startHeartbeat();
+    fallbackHeartbeatTimer = window.setInterval(() => {
+      sendLifecycle("heartbeat");
+    }, fallbackHeartbeatIntervalMs);
   }
 
-  function unregisterTab() {
+  function closeLifecycleStream() {
+    if (lifecycleStream) {
+      lifecycleStream.close();
+      lifecycleStream = null;
+    }
+  }
+
+  function openLifecycleStream() {
+    if (!("EventSource" in window) || lifecycleStream || closed) {
+      return;
+    }
+
+    lifecycleStream = new EventSource(`${streamEndpoint}?tab_id=${encodeURIComponent(clientId)}`);
+    lifecycleStream.onopen = () => {
+      sendLifecycle("register");
+    };
+    lifecycleStream.onerror = () => {
+      if (closed) {
+        closeLifecycleStream();
+        return;
+      }
+      if (lifecycleStream && lifecycleStream.readyState === EventSource.CLOSED) {
+        closeLifecycleStream();
+      }
+    };
+  }
+
+  function registerClient() {
+    closed = false;
+    if ("EventSource" in window) {
+      openLifecycleStream();
+      return;
+    }
+    startFallbackHeartbeat();
+  }
+
+  function unregisterClient() {
     if (closed) {
       return;
     }
     closed = true;
-    stopHeartbeat();
+    stopFallbackHeartbeat();
+    closeLifecycleStream();
     sendLifecycle("unregister", true);
   }
 
   window.addEventListener("pageshow", () => {
     if (closed) {
-      registerTab();
+      registerClient();
+      return;
+    }
+    if ("EventSource" in window) {
+      openLifecycleStream();
     } else {
       sendLifecycle("heartbeat");
     }
   });
 
-  window.addEventListener("pagehide", unregisterTab);
-  window.addEventListener("beforeunload", unregisterTab);
+  window.addEventListener("pagehide", unregisterClient);
+  window.addEventListener("beforeunload", unregisterClient);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
+    if (document.hidden) {
+      return;
+    }
+    if ("EventSource" in window) {
+      openLifecycleStream();
+    } else {
       sendLifecycle("heartbeat");
     }
   });
 
-  registerTab();
+  registerClient();
 })();
