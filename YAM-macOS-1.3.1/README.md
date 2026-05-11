@@ -60,8 +60,7 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 ### 起動する場所
 
 - macOS: `YAM-macOS-1.3.1/YAM.app`
-- Windows (ARM): `YAM-Windows-arm-1.3.1/YAM.exe`
-- Windows (x64): `YAM-Windows-x64-1.3.1/YAM.exe`
+- Windows: `YAM-Windows-1.3.1/YAM.exe`
 
 ### 補足
 
@@ -92,10 +91,8 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 
 - `YAM-macOS-<version>/`
   macOS 利用者向けの one-click 起動フォルダ
-- `YAM-Windows-arm-<version>/`
-  Windows ARM 利用者向けの one-click 起動フォルダ
-- `YAM-Windows-x64-<version>/`
-  Windows x64 利用者向けの one-click 起動フォルダ
+- `YAM-Windows-<version>/`
+  Windows 利用者向けの one-click 起動フォルダ
 - `README.md`
   利用者向け説明
 - `LICENSE`
@@ -109,8 +106,7 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 例:
 
 - macOS: `YAM-macOS-1.3.1/`
-- Windows (ARM): `YAM-Windows-arm-1.3.1/`
-- Windows (x64): `YAM-Windows-x64-1.3.1/`
+- Windows: `YAM-Windows-1.3.1/`
 
 `YAM-<OS>-<version>/` の中には以下が入ります。
 
