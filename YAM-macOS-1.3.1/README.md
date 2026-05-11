@@ -3,7 +3,7 @@
 YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想、統計をまとめて管理するローカルツールです。
 
 - どの動画をまだ見ていないか知りたい
-- あの動画は何だったか思い出したい
+- あの動画なんだっけ？ と思い出したい
 - 途中からすぐ見たい
 - 視聴統計や配信統計を見たい
 
@@ -60,7 +60,8 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 ### 起動する場所
 
 - macOS: `YAM-macOS-1.3.1/YAM.app`
-- Windows: `YAM-Windows-1.3.1/YAM.exe`
+- Windows (ARM): `YAM-Windows-arm-1.3.1/YAM.exe`
+- Windows (x64): `YAM-Windows-x64-1.3.1/YAM.exe`
 
 ### 補足
 
@@ -91,8 +92,10 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 
 - `YAM-macOS-<version>/`
   macOS 利用者向けの one-click 起動フォルダ
-- `YAM-Windows-<version>/`
-  Windows 利用者向けの one-click 起動フォルダ
+- `YAM-Windows-arm-<version>/`
+  Windows ARM 利用者向けの one-click 起動フォルダ
+- `YAM-Windows-x64-<version>/`
+  Windows x64 利用者向けの one-click 起動フォルダ
 - `README.md`
   利用者向け説明
 - `LICENSE`
@@ -106,7 +109,8 @@ YouTube チャンネルの動画を読み込み、視聴進捗、タグ、感想
 例:
 
 - macOS: `YAM-macOS-1.3.1/`
-- Windows: `YAM-Windows-1.3.1/`
+- Windows (ARM): `YAM-Windows-arm-1.3.1/`
+- Windows (x64): `YAM-Windows-x64-1.3.1/`
 
 `YAM-<OS>-<version>/` の中には以下が入ります。
 
@@ -292,13 +296,13 @@ https://www.youtube.com/@HakuiKoyori, https://www.youtube.com/@sakamatachloe, @l
 ## ライセンス
 
 MIT License
-詳細は `LICENSE` を参照してください。
+詳細は [LICENSE](./LICENSE) を参照してください。
 
 ## Credits
 
 ©IGNORANZ PROJECT
 
-- 企画：じょしゅのうち
-- システム：江上 新
-- IGNORANZ PROJECT X
-- IGNORANZ PROJECT 公式サイト
+- [企画：じょしゅのうち](https://x.com/Josyuuchi_Joyu)
+- [システム：江上 新](https://x.com/ArataEgami)
+- [IGNORANZ PROJECT X](https://x.com/IGNORANZ_P)
+- [IGNORANZ PROJECT 公式サイト](https://ignoranz-project.web.app/)
