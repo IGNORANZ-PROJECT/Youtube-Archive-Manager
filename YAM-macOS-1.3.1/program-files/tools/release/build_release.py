@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -113,7 +114,28 @@ SPEC_TEMPLATE = textwrap.dedent(
         (str(BASE_DIR / "assets"), "assets"),
     ]
     binaries = extra_binaries
-    hiddenimports = unique_strings(["app"] + package_hiddenimports)
+    hiddenimports = unique_strings(
+        [
+            "app",
+            "socket",
+            "_socket",
+            "ssl",
+            "_ssl",
+            "hashlib",
+            "_hashlib",
+            "select",
+            "multiprocessing",
+            "multiprocessing.context",
+            "multiprocessing.reduction",
+            "multiprocessing.util",
+            "_multiprocessing",
+            "_overlapped",
+            "_queue",
+            "pyexpat",
+            "unicodedata",
+        ]
+        + package_hiddenimports
+    )
 
     a = Analysis(
         [str(BASE_DIR / "launch_yam.py")],
@@ -211,6 +233,10 @@ def platform_label() -> str:
     return sys.platform
 
 
+def platform_arch_label() -> str:
+    return platform.machine() or "unknown"
+
+
 def load_app_version() -> str:
     app_path = BASE_DIR / "app.py"
     match = re.search(r'__version__\s*=\s*"([^"]+)"', app_path.read_text(encoding="utf-8"))
@@ -289,6 +315,31 @@ def build_env(icon_file: Optional[Path], version: str) -> dict[str, str]:
     env["PYINSTALLER_CONFIG_DIR"] = str(RELEASE_ROOT_DIR / ".pyinstaller")
     if icon_file is not None:
         env["YAM_ICON_FILE"] = str(icon_file)
+    return env
+
+
+def smoke_check_env(stage_dir: Path) -> dict[str, str]:
+    env = os.environ.copy()
+
+    for key in list(env):
+        upper = key.upper()
+        if upper.startswith("PYTHON") or upper in {"VIRTUAL_ENV", "__PYVENV_LAUNCHER__"}:
+            env.pop(key, None)
+
+    if sys.platform.startswith("win"):
+        system_root = env.get("SystemRoot") or env.get("WINDIR") or r"C:\Windows"
+        windir = env.get("WINDIR") or system_root
+        path_entries = [
+            str(stage_dir),
+            str(stage_dir / "_internal"),
+            os.path.join(system_root, "System32"),
+            system_root,
+            os.path.join(system_root, "System32", "Wbem"),
+            os.path.join(system_root, "System32", "WindowsPowerShell", "v1.0"),
+            windir,
+        ]
+        env["PATH"] = os.pathsep.join(entry for entry in path_entries if entry)
+
     return env
 
 
@@ -451,6 +502,7 @@ def run_built_smoke_check(stage_dir: Path) -> None:
     subprocess.run(
         [str(executable_path), "--check"],
         cwd=stage_dir,
+        env=smoke_check_env(stage_dir),
         check=True,
     )
     print_step("スタンドアロン起動チェック: ok")
@@ -486,6 +538,7 @@ def main() -> int:
     icon_file = prepare_icon_file()
     if icon_file is not None:
         print_step(f"icon: {icon_file}")
+    print_step(f"platform: {platform_label()} / arch: {platform_arch_label()}")
 
     run_pyinstaller(icon_file, version)
     built_target = find_built_target()

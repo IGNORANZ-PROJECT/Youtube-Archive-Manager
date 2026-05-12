@@ -88,7 +88,28 @@ datas = [
     (str(BASE_DIR / "assets"), "assets"),
 ]
 binaries = extra_binaries
-hiddenimports = unique_strings(["app"] + package_hiddenimports)
+hiddenimports = unique_strings(
+    [
+        "app",
+        "socket",
+        "_socket",
+        "ssl",
+        "_ssl",
+        "hashlib",
+        "_hashlib",
+        "select",
+        "multiprocessing",
+        "multiprocessing.context",
+        "multiprocessing.reduction",
+        "multiprocessing.util",
+        "_multiprocessing",
+        "_overlapped",
+        "_queue",
+        "pyexpat",
+        "unicodedata",
+    ]
+    + package_hiddenimports
+)
 
 a = Analysis(
     [str(BASE_DIR / "launch_yam.py")],
